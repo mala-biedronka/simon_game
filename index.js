@@ -1,61 +1,92 @@
-let userClickedPattern = [];
-let gamePattern = [];
 let buttonColours = ["red", "blue", "green", "yellow"];
 
-const fadeTime = 150;
+let gamePattern = [];
+let userClickedPattern = [];
 
-//Generates a random number between 0 and 3.
-function nextSequence () {
-    let randomNumber = Math.floor(Math.random() * 4);
-    let randomChosenColour = buttonColours[randomNumber];
+let started = false;
+let level = 0;
+
+$(document).keypress(function() {
+    if (!started) {
+        $("#level-title").text("Level " + level);
+        nextSequence();
+        started = true;
+    }
+});
+
+$(".btn").click(function(event) {
+    let userChosenColour = event.target.id;
+    userClickedPattern.push(userChosenColour);
+
+    playSound(userChosenColour);
+    animatePress(userChosenColour);
+
+    checkAnswer(userClickedPattern.length-1);
+});
+
+
+function checkAnswer(currentLevel) {
+
+    if (gamePattern[currentLevel] === userClickedPattern[currentLevel]) {
+
+        console.log("success");
+
+        if (userClickedPattern.length === gamePattern.length){
+            setTimeout(function () {
+                nextSequence();
+            }, 1000);
+        }
+
+    } else {
+
+        console.log("wrong");
+
+        playSound("wrong");
+
+        $("body").addClass("game-over");
+        setTimeout(function () {
+            $("body").removeClass("game-over");
+        }, 200);
+
+        $("#level-title").text("Game Over, Press Any Key to Restart");
+
+        //2. Call startOver() if the user gets the sequence wrong.
+        startOver();
+    }
+
+}
+
+function nextSequence() {
+
+    userClickedPattern = [];
+    level++;
+    $("#level-title").text("Level " + level);
+
+    var randomNumber = Math.floor(Math.random() * 4);
+    var randomChosenColour = buttonColours[randomNumber];
     gamePattern.push(randomChosenColour);
-    $("#" + randomChosenColour).fadeOut(fadeTime).fadeIn(fadeTime);
+
+    $("#" + randomChosenColour).fadeIn(100).fadeOut(100).fadeIn(100);
     playSound(randomChosenColour);
 }
 
-$(".btn").click(function (event) {
-    let userChosenColour = event.target.id;
-    userClickedPattern.push(userChosenColour);
-    animatePress(userChosenColour);
-});
-
 function playSound(name) {
-    let audio = new Audio("sounds/" + name + ".mp3");
+    var audio = new Audio("sounds/" + name + ".mp3");
     audio.play();
 }
 
-
-
-//Add Animations to User Clicks
-function animatePress(currentColour){
-    $("#" + currentColour).addClass("pressed");
-    setTimeout(function(){
-        $("#" + currentColour).removeClass("pressed");
+function animatePress(currentColor) {
+    $("#" + currentColor).addClass("pressed");
+    setTimeout(function () {
+        $("#" + currentColor).removeClass("pressed");
     }, 100);
 }
 
+//1. Create a new function called startOver().
+function startOver() {
 
-//Detects when a keyboard key has been pressed
-$(document).keypress(function () {
-    //You'll need a way to keep track of whether if the game has started
-    // or not, so you only call nextSequence() on the first keypress.
-    let level = 0;
-    nextSequence ();
-})
-
-//Debug
-
-// if(window.attachEvent) {
-//     window.attachEvent('onload', yourFunctionName);
-// } else {
-//     if(window.onload) {
-//         var curronload = window.onload;
-//         var newonload = function(evt) {
-//             curronload(evt);
-//             nextSequence(evt);
-//         };
-//         window.onload = newonload;
-//     } else {
-//         window.onload = nextSequence;
-//     }
-// }
+    //3. Inside this function, you'll need to reset the values of level, gamePattern and started variables.
+    level = 0;
+    gamePattern = [];
+    started = false;
+}
